@@ -3,7 +3,7 @@ import sys
 
 def extrair_key_executor(link):
     # Definir o padrão de regex para encontrar a key
-    padrao = r'\bkey=([a-zA-Z0-9_-]+)\b'
+    padrao = r'/\d+\?id=(\d+)'
     
     # Procurar pela key no link usando regex
     match = re.search(padrao, link)
