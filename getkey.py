@@ -10,10 +10,11 @@ def extrair_key_executor_delta(link):
         options = webdriver.ChromeOptions()
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--ignore-ssl-errors')
+        options.add_argument('--headless')  # Executar em modo headless (sem interface gráfica)
+        options.add_argument('--no-sandbox')  # Necessário para o Termux
 
         # Inicialização do WebDriver do Chrome
-        driver = webdriver.Chrome(options=options)
-        driver.maximize_window()
+        driver = webdriver.Chrome(executable_path='/data/data/com.termux/files/usr/bin/chromedriver', options=options)
 
         # Abrir a página do link fornecido
         driver.get(link)
@@ -41,7 +42,8 @@ def extrair_key_executor_delta(link):
         return None
 
     finally:
-        driver.quit()
+        if 'driver' in locals():
+            driver.quit()
 
 # URL do link fornecido
 link = "https://gateway.platoboost.com/a/8?id=6182101796"
