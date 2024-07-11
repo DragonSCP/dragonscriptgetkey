@@ -1,58 +1,55 @@
-import requests
-import re
-import sys
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
 
-def extrair_key_executor(link):
+def extrair_key_executor_delta(link):
     try:
-        # Headers personalizados para simular um navegador
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+        # Configuração do navegador
+        options = webdriver.ChromeOptions()
+        options.add_argument('--ignore-certificate-errors')
+        options.add_argument('--ignore-ssl-errors')
 
-        # Fazendo a requisição GET ao link fornecido com headers
-        response = requests.get(link, headers=headers)
+        # Inicialização do WebDriver do Chrome
+        driver = webdriver.Chrome(options=options)
+        driver.maximize_window()
 
-        # Verificando se a requisição foi bem sucedida
-        response.raise_for_status()
+        # Abrir a página do link fornecido
+        driver.get(link)
 
-        # Definir o padrão de regex para encontrar a key
-        padrao = r'KEY_[a-fA-F0-9]+'
+        # Esperar até que o botão 'Continuar' seja clicável
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'recaptcha-anchor'))).click()
 
-        # Procurar pela key no conteúdo da resposta usando regex
-        match = re.search(padrao, response.text)
+        # Esperar até que o botão 'Watch Video' apareça e clicar nele
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Watch Video'))).click()
 
-        # Verificar se encontrou a key
-        if match:
-            return match.group(0)  # Retorna a key encontrada
-        else:
-            return None  # Retorna None se não encontrar a key no conteúdo
+        # Esperar 5 segundos após clicar em 'Watch Video'
+        time.sleep(5)
 
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao fazer a requisição: {str(e)}")
-        return None
+        # Clicar em 'Continue' após esperar 5 segundos
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Continue'))).click()
+
+        # Esperar até que a Key seja visível e extrair o texto dela
+        key_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, 'key')))
+        key = key_element.text.strip()
+
+        return key
+
     except Exception as e:
         print(f"Ocorreu um erro: {str(e)}")
         return None
 
-# Função principal para executar o programa
-def main():
-    try:
-        # Pegar o link do usuário
-        link_do_executor = input("Digite o link do executor: ").strip()
+    finally:
+        driver.quit()
 
-        # Extrair a key do executor
-        key_encontrada = extrair_key_executor(link_do_executor)
+# URL do link fornecido
+link = "https://gateway.platoboost.com/a/8?id=6182101796"
 
-        if key_encontrada:
-            print(f"A key do executor é: {key_encontrada}")
-        else:
-            print("Não foi possível encontrar a key do executor no link fornecido.")
+# Extrair a chave executor delta
+key_executor_delta = extrair_key_executor_delta(link)
 
-    except KeyboardInterrupt:
-        print("\nOperação cancelada.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Ocorreu um erro: {str(e)}")
-
-if __name__ == "__main__":
-    main()
+if key_executor_delta:
+    print(f"A chave executor delta é: {key_executor_delta}")
+else:
+    print("Não foi possível extrair a chave executor delta do link fornecido.")
